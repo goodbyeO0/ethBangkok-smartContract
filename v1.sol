@@ -33,6 +33,9 @@ contract TrafficViolation {
     event FinePaid(string plateNumber, uint256 amount, uint256 timestamp);
     event PlateNumberRegistered(string icNumber, string plateNumber);
 
+    // Add this at the contract level with other state variables
+    string[] public allPlateNumbers; // Array to track all registered plate numbers
+
     constructor() {
         owner = msg.sender;
     }
@@ -55,7 +58,8 @@ contract TrafficViolation {
 
         icToPlateNumbers[_icNumber].push(_plateNumber);
         plateNumberToIC[_plateNumber] = _icNumber;
-        icToEmail[_icNumber] = _email; // Store the email
+        icToEmail[_icNumber] = _email;
+        allPlateNumbers.push(_plateNumber); // Add this line to track the plate number
 
         emit PlateNumberRegistered(_icNumber, _plateNumber);
     }
@@ -202,5 +206,47 @@ contract TrafficViolation {
         string memory icNumber = plateNumberToIC[_plateNumber];
         require(bytes(icNumber).length > 0, "Plate number not registered");
         return icToEmail[icNumber];
+    }
+
+    // Fix getAllPlateNumbersWithViolations function
+    function getAllPlateNumbersWithViolations()
+        public
+        view
+        returns (string[] memory)
+    {
+        // First count how many plate numbers have violations
+        uint256 count = 0;
+        for (uint256 i = 0; i < allPlateNumbers.length; i++) {
+            if (violationRecords[allPlateNumbers[i]].length > 0) {
+                count++;
+            }
+        }
+
+        // Create array with exact size needed
+        string[] memory result = new string[](count);
+        uint256 resultIndex = 0;
+
+        // Fill the array with plate numbers that have violations
+        for (uint256 i = 0; i < allPlateNumbers.length; i++) {
+            string memory plateNumber = allPlateNumbers[i];
+            if (violationRecords[plateNumber].length > 0) {
+                result[resultIndex] = plateNumber;
+                resultIndex++;
+            }
+        }
+
+        return result;
+    }
+
+    // Add a function to get all violations for a specific plate number
+    function getAllViolationsForPlateNumber(
+        string memory _plateNumber
+    ) public view returns (Record[] memory) {
+        return violationRecords[_plateNumber];
+    }
+
+    // Add helper function to get total registered plate numbers
+    function getTotalRegisteredPlateNumbers() public view returns (uint256) {
+        return allPlateNumbers.length;
     }
 }
