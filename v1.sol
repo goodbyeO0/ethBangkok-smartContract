@@ -12,6 +12,8 @@ contract TrafficViolation {
         string timestamp;
         bool isPaid;
         uint256 fineAmount;
+        int256 latitude;
+        int256 longitude;
     }
 
     // Mapping IC number to plate numbers owned
@@ -22,6 +24,9 @@ contract TrafficViolation {
 
     // Mapping plate number to violation records
     mapping(string => Record[]) public violationRecords;
+
+    // Add new mapping for IC to email
+    mapping(string => string) public icToEmail;
 
     // Events
     event ViolationRecorded(string plateNumber, uint256 timestamp);
@@ -40,7 +45,8 @@ contract TrafficViolation {
     // Register plate number to IC
     function registerPlateNumber(
         string memory _icNumber,
-        string memory _plateNumber
+        string memory _plateNumber,
+        string memory _email
     ) public onlyOwner {
         require(
             bytes(plateNumberToIC[_plateNumber]).length == 0,
@@ -49,6 +55,7 @@ contract TrafficViolation {
 
         icToPlateNumbers[_icNumber].push(_plateNumber);
         plateNumberToIC[_plateNumber] = _icNumber;
+        icToEmail[_icNumber] = _email; // Store the email
 
         emit PlateNumberRegistered(_icNumber, _plateNumber);
     }
@@ -58,7 +65,9 @@ contract TrafficViolation {
         string memory _plateNumber,
         string memory _color,
         string memory _brand,
-        string memory _timestamp
+        string memory _timestamp,
+        int256 _latitude,
+        int256 _longitude
     ) public onlyOwner {
         require(
             bytes(plateNumberToIC[_plateNumber]).length > 0,
@@ -71,7 +80,9 @@ contract TrafficViolation {
             brand: _brand,
             timestamp: _timestamp,
             isPaid: false,
-            fineAmount: defaultFineAmount
+            fineAmount: defaultFineAmount,
+            latitude: _latitude,
+            longitude: _longitude
         });
 
         violationRecords[_plateNumber].push(newRecord);
@@ -142,7 +153,9 @@ contract TrafficViolation {
             string memory brand,
             string memory timestamp,
             bool isPaid,
-            uint256 fineAmount
+            uint256 fineAmount,
+            int256 latitude,
+            int256 longitude
         )
     {
         require(
@@ -156,7 +169,9 @@ contract TrafficViolation {
             record.brand,
             record.timestamp,
             record.isPaid,
-            record.fineAmount
+            record.fineAmount,
+            record.latitude,
+            record.longitude
         );
     }
 
@@ -167,5 +182,25 @@ contract TrafficViolation {
 
     function withdrawFunds() public onlyOwner {
         payable(owner).transfer(address(this).balance);
+    }
+
+    // Add a function to get email by IC number
+    function getEmailByIC(
+        string memory _icNumber
+    ) public view returns (string memory) {
+        require(
+            bytes(icToEmail[_icNumber]).length > 0,
+            "IC number not registered"
+        );
+        return icToEmail[_icNumber];
+    }
+
+    // Add a function to get email by plate number
+    function getEmailByPlateNumber(
+        string memory _plateNumber
+    ) public view returns (string memory) {
+        string memory icNumber = plateNumberToIC[_plateNumber];
+        require(bytes(icNumber).length > 0, "Plate number not registered");
+        return icToEmail[icNumber];
     }
 }
