@@ -3,7 +3,7 @@
 A Solidity smart contract for managing traffic violations and fines on the Scroll Sepolia testnet.
 
 ## Contract Address
-Verified Contract Address (Scroll Sepolia): `0x5F36A20D3D06B7bfc63a59c3A566489907938F5c`
+Verified Contract Address (Scroll Sepolia): [`0x5F36A20D3D06B7bfc63a59c3A566489907938F5c`](https://sepolia.scrollscan.dev/address/0x5F36A20D3D06B7bfc63a59c3A566489907938F5c)
 
 ## Features
 
